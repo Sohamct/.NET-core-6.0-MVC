@@ -1,0 +1,320 @@
+﻿@{
+    Layout = "FeedBase";
+    ViewData["Title"] = "Feed";
+}
+<div class="post_editdelete-background" id="post-background">
+    <div class="post_editdelete" id="post_edit-display">
+        <p style="font-size: 40px">Edit Post</p>
+        <hr style="margin: 0"/>
+        <p>Edit your post below:</p>
+        <p name="editid" id="editid" style="display: none"></p>
+        <p name="deleteid" id="deleteid" style="display: none"></p>
+        <div class="form-group">
+            <textarea name="editpost" id="editpost" class="form-control" rows="3"> </textarea>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="hideEditWindow()">Cancel</button>
+        <button type="submit" class="btn btn-primary" onclick="UpdatePost()">Save Changes</button>
+    </div>
+    <div class="post_editdelete" id="post_delete-display">
+        <p style="font-size: 40px">Confirm Delete</p>
+        <hr style="margin: 0"/>
+        <p>Are you sure you want to delete your post?</p>
+        <button type="button" class="btn btn-secondary" onclick="hideDeleteWindow()">Cancel</button>
+        <button type="submit" class="btn btn-danger" onclick="DeletePost()">Delete</button>
+    </div>
+</div>
+<div class="home-body">
+    <div class="home-contents" style="margin-top: 40px;">
+        <p class="home-contents">
+            @if (MVC.Controllers.PostsModelsController.ProfilePhoto != null)
+            {
+                string imageFormat = "image/png";
+                if (MVC.Controllers.PostsModelsController.ProfilePhoto[0] == 0xFF && MVC.Controllers.PostsModelsController.ProfilePhoto[1] == 0xD8)
+                {
+                    imageFormat = "image/jpeg";
+                }
+                <img src="data:@imageFormat;base64,@(Convert.ToBase64String(MVC.Controllers.PostsModelsController.ProfilePhoto))" alt="Profile Photo" class="profile-photo rounded-circle" />
+
+            }
+            else
+            {
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z" />
+                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z" />
+                </svg>
+            }
+            @MVC.Controllers.AccountsModelsController._username
+        </p>
+        <div class="form-group">
+            <textarea name="content" id="content" class="form-control" rows="3" placeholder="Post something..."></textarea>
+        </div>
+        <div class="form-group-postbutton">
+            <button type="button" class="btn btn-secondary" onclick="txtareaClearPost()">Clear</button>
+            <button type="button" class="btn btn-primary" onclick="CreatePost()">Post</button>
+        </div>
+    </div>
+</div>
+
+@*posts here*@
+<div id="posts"></div>
+        @*<div class="home-body">
+            <div class="home-contents">
+                <div class="home_content-header">
+                <p class="home-contents" name="postedBy" id="postedBy">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                    </svg>
+                    Sample Username
+                </p>
+                <p class="home-postdate" name="date" id="date">Jan 1, 2022 00:00:00 AM</p>
+                </div>
+                <button class="content_dropdown" onclick="displayDropdownOptions()">
+                  <span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+                      <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/>
+                    </svg>
+                  </span>
+                </button>
+                <div class="dropdown-content" id="dropdown-content">
+                    <button onclick="displayEditWindow()" class="dropdown-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                          <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                          <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                        </svg>
+                        Edit Post</button>
+                    <hr class="dropdown-separator" />
+                    <button onclick="displayDeleteWindow()" class="dropdown-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                          <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                          <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+                        </svg>
+                        Delete Post</button>
+                 </div>
+                <div class="content_post">
+                    <p name="content" id="content">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+            </div>
+        </div>*@
+
+@section Scripts
+{
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+
+    <script>
+
+        ReadPost(false, null);
+
+        //CRUD functions
+        function CreatePost() {
+            var url = '/PostsModels/CreatePost?content=' + $("#content").val();
+            var data = "{content : '" + $("#content").val() + "'}";
+            var method = 'POST';
+
+            $.ajax({
+                type: method,
+                url: url,
+                dataType: 'JSON',
+                contentType: "application/json; charset=utf-8",
+                data: data,
+
+                success: function(data) {
+                    txtareaClearPost();
+                    ReadPost(false, null);
+                }
+            });
+
+        }
+        function ReadPost(getData, id) {
+
+            var url = '';
+            var method = 'GET';
+
+            if (!getData) url = '/PostsModels/GetFeed';
+            else url = 'GetPost?id=' + id;
+            function arrayBufferToBase64(buffer) {
+                let binary = '';
+                const bytes = new Uint8Array(buffer);
+                const len = bytes.byteLength;
+                for (let i = 0; i < len; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return btoa(binary);
+            }
+
+
+            $.ajax({
+                type: method,
+                url: url,
+                dataType: 'JSON',
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    if (!getData) {
+                        let text = "";
+                        console.log(data.data);
+                        for (let i in data.data) {
+                            text += "<div class='home-body'>" +
+                                "<div class='home-contents'>" +
+                                "<div class='home_content-header'>" +
+                                "<p class='home-contents' name='postedBy' id='postedBy'>";
+
+                            if (data.data[i].ProfilePhoto != null) {
+                                var base64Image = "data:image/jpg;base64," + arrayBufferToBase64(data.data[i].ProfilePhoto);
+                                text += `<img src="${base64Image}" alt="Profile Photo" class="profile-photo rounded-circle" />`;
+                            } else {
+                                text += "<svg xmlns='http://www.w3.org/2000/svg' width='38' height='38' fill='currentColor' class='bi bi-person-circle' viewBox='0 0 16 16'>" +
+                                    "<path d='M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z'/>" +
+                                    "<path fill-rule='evenodd' d='M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z'/>" +
+                                    "</svg>";
+                            }
+
+                            text += "  " + data.data[i].postedBy + "</p>" +
+                                "<p class='home-postdate' name='date' id='date'>" + data.data[i].date + "</p>" +
+                                "</div>"+
+                                "</div>" +
+                                "</div>";
+                        }
+                        
+                        document.getElementById("posts").innerHTML = text;
+                        for (let i in data.data) {
+                            document.getElementById("content" + data.data[i].id).innerText = data.data[i].content;
+
+                            $.ajax({
+                                type: 'GET',
+                                url: '../AccountsModels/GetUsername',
+                                success: function(usr) {
+                                    if (data.data[i].postedBy == usr.data) {
+                                        document.getElementById("dropdown" + data.data[i].id).innerHTML =
+                                            "<button class='content_dropdown' onclick='displayDropdownOptions(" + data.data[i].id + ")'>" +
+                                                "<span>" +
+                                                    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-three-dots' viewBox='0 0 16 16'>" +
+                                                        "<path d='M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z'/>" +
+                                                    "</svg>" +
+                                                "</span>" +
+                                            "</button>" +
+                                            "<div class='dropdown-content' id='dropdown-content" + data.data[i].id + "'>" +
+                                                "<button onclick='displayEditWindow(" + data.data[i].id + ")' class='dropdown-button'>" +
+                                                    "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-pencil-square' viewBox='0 0 16 16'>" +
+                                                        "<path d='M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z'/>" +
+                                                        "<path fill-rule='evenodd' d='M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z'/>" +
+                                                    "</svg>" +
+                                                " Edit Post</button>" +
+                                                "<hr class='dropdown-separator' />" +
+                                                "<button onclick='displayDeleteWindow(" + data.data[i].id + ")' class='dropdown-button'>" +
+                                                "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-trash' viewBox='0 0 16 16'>" +
+                                                    "<path d='M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z'/>" +
+                                                    "<path fill-rule='evenodd' d='M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z'/>" +
+                                                "</svg>" +
+                                                " Delete Post</button>" +
+                                            "</div>";
+                                    }
+                                }
+                            
+                            });
+                        }
+                    }
+                    else { 
+                        $("#editpost").val(data.data[0].content);
+                        $("#editid").text(data.data[0].id);
+                    }
+                }
+            });
+        }
+        function UpdatePost() {
+            var url = "/PostsModels/EditPost?id=" + document.getElementById("editid").innerHTML + "&content=" + $("#editpost").val();
+            var method = 'POST';
+
+            $.ajax({
+                type: method,
+                url: url,
+                dataType: 'Json',
+                contentType: "application/json; charset=utf-8",
+                success: function() {
+                    ReadPost(false, null);
+                    hideEditWindow();
+                }
+            });
+        }
+        function DeletePost(){
+            var url = '/PostsModels/DeletePost?id=' + document.getElementById("deleteid").innerHTML;
+            var method = 'Post';
+
+            $.ajax({
+                type: method,
+                url: url,
+                dataType: 'Json',
+                contentType: "application/json; charset=utf-8",
+                success: function() {
+                    ReadPost(false, null);
+                    hideDeleteWindow();
+                }
+            });
+        }
+    </script>
+    <script>
+        //Interaction functions
+        document.addEventListener("DOMContentLoaded", function () {
+            
+        });
+        var isDropdownDisplayed = false;
+        var dropdownID = 0;
+        var newID = 0;
+        function displayEditWindow(id) {
+            document.getElementById("post_edit-display").style.display = "block";
+            displayBackground();
+            hideDropdownOptions(dropdownID);
+            ReadPost(true, id);
+        }
+        function hideEditWindow() {
+            document.getElementById("post_edit-display").style.display = "none";
+            hideBackground();
+            isDropdownDisplayed = false;
+        }
+        function displayDeleteWindow(id) {
+            document.getElementById("post_delete-display").style.display = "block";
+            displayBackground();
+            hideDropdownOptions(dropdownID);
+            $("#deleteid").text(id);
+        }
+        function hideDeleteWindow() {
+            document.getElementById("post_delete-display").style.display = "none";
+            hideBackground();
+            isDropdownDisplayed = false;
+        }
+        function hideBackground() {
+            document.getElementById("post-background").style.display = "none";
+        }
+        function displayBackground() {
+            document.getElementById("post-background").style.display = "block";
+        }
+        function displayDropdownOptions(id){
+            dropdownID = id;
+            if (!isDropdownDisplayed) {
+                document.getElementById("dropdown-content" + dropdownID).style.display = "inline-block";
+                isDropdownDisplayed = true;
+                newID = dropdownID;
+            }
+            else {
+                if (dropdownID != newID) {
+                    document.getElementById("dropdown-content" + dropdownID).style.display = "inline-block";
+                    hideDropdownOptions(newID);
+                    newID = dropdownID;
+                }
+                else {
+                    hideDropdownOptions(dropdownID);
+                    newID = 0;
+                    isDropdownDisplayed = false;
+                }
+            }
+        }
+        function hideDropdownOptions(id){
+            document.getElementById("dropdown-content" + id).style.display = "none";
+        }
+    </script>
+    <script>
+        function txtareaClearPost() {
+            document.getElementById("content").value = "";
+        }
+    </script>
+}

@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Signup";
+    MVC.Controllers.AccountsModelsController.onAdminMode = false;
+}
+
+<div class="container">
+    <div class="login-form">
+        <p class="text-login">Signup</p>
+            <div class="form-group">
+                <label for="usr">Name:</label>
+                <input type="text" class="form-control" id="usr" name="usr" oninput="ValidateUsername()">
+                <p id="info" style="margin: 0"></p>
+            </div>
+            <div class="form-group">
+                <label for="pwd">Password:</label>
+                <input type="password" class="form-control" id="pwd" name="pwd" oninput="InputCheck()">
+            </div>
+            <div class="form-group">
+                <label for="cpwd">Confirm Password:</label>
+                <input type="password" class="form-control" id="cpwd" name="cpwd" oninput="InputCheck()">
+                <p id="error" style="color: red; margin: 0"></p>
+            </div>
+            <a type="button" class="btn btn-primary" asp-controller="LandingPage" asp-action="Login">&ltBack</a>
+            <input type="submit" value ="Create" class="btn btn-primary" onclick="ValidatePassword()" id="btncreate" disabled/>
+    </div>
+</div>
+@section Scripts{
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+    <script>
+        var UsernameIsValid = true;
+
+        function ValidateUsername() {
+            $.ajax({
+                type: 'GET',
+                url: '../AccountsModels/GetUsernames',
+                success: function(data) {
+                    if ($("#usr").val() == "") {
+                        document.getElementById("info").innerHTML = "";
+                    }
+                    else {
+                        for (let item in data.data) {
+                            if (data.data[item] == $("#usr").val()) {
+                                document.getElementById("info").innerHTML = "Username is already taken.";
+                                document.getElementById("info").style.color = "red";
+                                UsernameIsValid = false;
+                                break;
+                            }
+                            if (UsernameIsValid) {
+                                document.getElementById("info").innerHTML = "Username is available.";
+                                document.getElementById("info").style.color = "green";
+                            }
+                        }
+                    }
+                    InputCheck();
+                }
+            });
+        }
+
+        function InputCheck() {
+            if (!UsernameIsValid || $("#usr").val() == ""  || $("#pwd").val() == "" || $("#cpwd").val() == "") {
+                document.getElementById("btncreate").setAttribute("disabled", "");
+            }
+            else {
+                document.getElementById("btncreate").removeAttribute("disabled");
+            }
+        }
+        function ValidatePassword(){
+            $.ajax({
+                type: 'GET',
+                url: '../accountsmodels/validatepassword?pwd=' + $("#pwd").val() + "&cpwd=" + $("#cpwd").val(),
+                success: function(data) {
+                    if (data.data[0] == "1") {
+                        CreateAccount();
+                    }
+                    else {
+                        document.getElementById("error").innerHTML = "Passwords does not match.";
+                    }
+                }
+            });
+            
+        }
+        function CreateAccount() {
+            $.ajax({
+                type: 'POST',
+                url: "../AccountsModels/CreateAccount?username=" + $("#usr").val() + "&password=" + $("#pwd").val(),
+                success: function() {
+                    location.href = "../PostsModels/Feed";
+                }
+            });
+        }
+    </script>
+}

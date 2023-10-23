@@ -1,0 +1,15 @@
+﻿<html>
+    <head>
+        <title>@ViewData["Title"]</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+        <link rel="stylesheet" href="~/css/landingpage.css" asp-append-version="true" />
+    </head>
+    <body>
+        <div class="bg">
+            @RenderBody()
+        </div>
+        @await RenderSectionAsync("Scripts", required: false)
+    </body>
+</html>

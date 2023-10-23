@@ -1,0 +1,202 @@
+﻿@model MVC.Models.AccountsModel
+
+@{
+    Layout = "FeedBase";
+    ViewData["Title"] = "Settings";
+}
+
+
+<div class="settings">
+    <p style="font-size: xx-large; margin-left: 5px">Settings</p>
+
+    @* Display Profile Photo *@
+    @{
+        string imageFormat = "image/png";
+        if (Model.ProfilePhoto != null && Model.ProfilePhoto.Length > 0)
+        {
+            if (Model.ProfilePhoto[0] == 0xFF && Model.ProfilePhoto[1] == 0xD8)
+            {
+                // The first two bytes indicate a JPG image (0xFFD8).
+                imageFormat = "image/jpeg";
+            }
+        }
+    }
+
+    @if (Model.ProfilePhoto != null)
+    {
+        <img class="profile-photo rounded-circle" src="data:@imageFormat;base64,@(Convert.ToBase64String(Model.ProfilePhoto))" alt="Profile Photo" class="profile-photo" />
+    }
+    else
+    {
+        <p>No profile photo available</p>
+    }
+
+    <div class="settings_container">
+        <p class="settings_title">Update your profile</p>
+        <hr />
+        <p>Upload new profile photo:</p>
+        <input type="file" id="profilePhoto" name="profilePhoto" />
+        <hr />
+        <div class="settings-button">
+            <input type="submit" value="Update Profile" class="btn btn-primary" onclick="UpdateProfile()" />
+        </div>
+    </div>
+
+    <p class="settings_title">Change your password</p>
+    <hr />
+    <p style="margin-top: 10px">Enter old password:</p>
+    <input type="password" placeholder="Enter your old password here" class="input_password" id="oldpass" name="oldpass" oninput="PasswordNullCheck()" />
+    <p id="oldpass_error" class="settings_password-errormessage"></p>
+    <p>Enter new password:</p>
+    <input type="password" placeholder="Enter your new password here" class="input_password" id="newpass" name="newpass" oninput="PasswordNullCheck()" />
+    <p id="newpass_error" class="settings_password-errormessage"></p>
+    <p>Re-enter new password:</p>
+    <input type="password" placeholder="Re-enter your new password here" class="input_password" id="_newpass" name="_newpass" oninput="PasswordNullCheck()" />
+    <p id="_newpass_error" class="settings_password-errormessage"></p>
+    <hr />
+    <div class="settings-button">
+        <p id="newpass_success"></p>
+        <input type="submit" id="pass_button" value="Change Password" class="btn btn-primary" onclick="ValidatePassword()" disabled />
+    </div>
+</div>
+<div class="settings_container">
+    <p class="settings_title">Delete your Account</p>
+    <hr />
+    <p style="margin-top: 10px">We must verify you first by entering your password:</p>
+    <input type="password" placeholder="Enter your password here" class="input_password" id="deletepass" name="deletepass" oninput="DeletePasswordNullCheck()" />
+    <p id="deletepass_error" class="settings_password-errormessage"></p>
+    <hr />
+    <div class="settings-button">
+        <p>You confirm the deletion of your account by clicking "Delete My Account".</p>
+        <input type="submit" value="Delete My Account" class="btn btn-danger" id="delete_button" name="delete_button" onclick="DeleteAccount()" disabled />
+    </div>
+</div>
+
+@section Scripts{
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.js"></script>
+
+    <script>
+        function UpdateProfile() {
+            var formData = new FormData();
+            formData.append("profilePhoto", $("#profilePhoto")[0].files[0]);
+
+            $.ajax({
+                type: 'POST',
+                url: '../AccountsModels/UpdateProfile',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    if (data.success) {
+                        alert(data.message);
+                        $.ajax({
+                            type: 'GET',
+                            url: '../PostsModels/Settings',
+                            success: function (profileData) {
+                                // Update the profile photo with the new data.
+                                updateProfilePhoto(profileData);
+                            }
+                        });
+                    } else {
+                        alert(data.message);
+                    }
+                }
+            });
+        }
+
+        function PasswordNullCheck() {
+            if ($("#oldpass").val() != "" && $("#newpass").val() != "" && $("#_newpass").val() != "") {
+                document.getElementById("pass_button").removeAttribute("disabled");
+            } else {
+                document.getElementById("pass_button").setAttribute("disabled", "");
+            }
+        }
+
+        function DeletePasswordNullCheck() {
+            if ($("#deletepass").val() != "") {
+                document.getElementById("delete_button").removeAttribute("disabled");
+            } else {
+                document.getElementById("delete_button").setAttribute("disabled", "");
+            }
+        }
+
+        function ClearPasswordField() {
+            $("#oldpass").val("");
+            $("#newpass").val("");
+            $("#_newpass").val("");
+        }
+
+        function ValidatePassword() {
+            var url = '../AccountsModels/GetPassword';
+            var method = 'GET';
+
+            $.ajax({
+                type: method,
+                url: url,
+                dataType: 'JSON',
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    /* Validation check */
+                    if ($("#oldpass").val() == data.data) {
+                        if ($("#newpass").val() == $("#_newpass").val()) {
+                            EditPassword();
+                            document.getElementById("newpass_success").innerHTML = "Your password has been updated successfully.";
+                            document.getElementById("_newpass_error").innerHTML = "";
+                            document.getElementById("newpass_error").innerHTML = "";
+                            document.getElementById("oldpass_error").innerHTML = "";
+                            ClearPasswordField();
+                        } else {
+                            document.getElementById("newpass_success").innerHTML = "";
+                            document.getElementById("oldpass_error").innerHTML = "";
+                            document.getElementById("_newpass_error").innerHTML = "Passwords do not match.";
+                        }
+                    } else {
+                        document.getElementById("newpass_success").innerHTML = "";
+                        document.getElementById("oldpass_error").innerHTML = "You entered an incorrect password.";
+                    }
+                }
+            });
+        }
+
+        function EditPassword() {
+            var url = '../AccountsModels/EditPassword?newpass=' + $("#newpass").val();
+            var method = 'POST';
+
+            $.ajax({
+                type: method,
+                url: url,
+                dataType: 'JSON',
+                contentType: "application/json; charset=utf-8"
+            });
+        }
+
+        function DeleteAccount() {
+            var url = '../AccountsModels/GetPassword';
+            var method = 'GET';
+
+            $.ajax({
+                type: method,
+                url: url,
+                dataType: 'JSON',
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    /* Validation check */
+                    if ($("#deletepass").val() == data.data) {
+                        $.ajax({
+                            type: 'POST',
+                            url: '../AccountsModels/DeleteAccount',
+                            dataType: 'JSON',
+                            contentType: "application/json; charset=utf-8",
+                            success: function () {
+                                location.href = "../landingpage";
+                            }
+                        });
+                    } else {
+                        document.getElementById("deletepass_error").innerHTML = "You entered an incorrect password.";
+                    }
+                }
+            });
+        }
+    </script>
+}

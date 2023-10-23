@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Login";
+    Layout = "Base";
+}
+
+<div class="container">
+    @{
+        if(MVC.Controllers.AccountsModelsController.incorrectInput == true)
+        {
+            <div runat="server" id="AlertBox" class="alertBox">
+                <p>Incorrect Username or Password.Try again.</p>
+            </div>
+        }
+    }
+    <div class="login-form">
+        <p class="text-login">Login</p>
+        <form asp-controller="AccountsModels" asp-action="Login">
+            <div class="form-group">
+                <label for="usr">Name:</label>
+                <input type="text" class="form-control" name="username">
+            </div>
+            <div class="form-group">
+                <label for="pwd">Password:</label>
+                <input type="password" class="form-control" name="password">
+            </div>
+            <input type="submit" value="Login" class="btn btn-primary">
+            <a type="button" class="btn btn-primary" asp-controller="LandingPage" asp-action="Signup">Signup</a>
+        </form>
+    </div>
+</div>
